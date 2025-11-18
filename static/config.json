@@ -1,0 +1,11 @@
+{
+	"colors": {
+		"primary": 34,
+		"secondary": 90
+	},
+
+	"characters": {
+		"cursor": ">",
+		"borders": "||--"
+	}
+}
