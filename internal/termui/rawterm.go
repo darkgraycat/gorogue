@@ -61,12 +61,12 @@ func (rt *RawTerm) ReadLine() (string, error) {
 		}
 
 		ch := rt.buf[0]
-		if ch == 13 {
+		if ch == KEY_CR {
 			fmt.Print("\r\n")
 			break
 		}
 
-		if ch == 127 {
+		if ch == KEY_BS {
 			if len(out) > 0 {
 				out = out[:len(out)-1]
 				fmt.Print("\b \b")
