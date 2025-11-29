@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strconv"
 
 	"gorogue/internal/termui"
 	"gorogue/internal/utils"
@@ -40,12 +41,15 @@ type Enemy struct {
 }
 
 func runGame(rt *termui.RawTerm) error {
+	var err error
+	var response string
+
 	player := Player{
 		Potions: 10,
 		Skills:  []string{"Attack", "Magic", "Potion"},
 	}
 
-	response, err := makeInput(rt, "What is your name?")
+	response, err = makeInput(rt, "What is your name?")
 	if err != nil {
 		return nil
 	}
@@ -57,13 +61,13 @@ func runGame(rt *termui.RawTerm) error {
 		"Wizard",
 	})
 	if err != nil {
-		return nil
+		return err
 	}
 	player.Class = response
 
-	player.Hp = utils.IfElse(player.Class == "Paladin", 120, 80)
-	player.Mp = utils.IfElse(player.Class == "Wizard", 40, 20)
-	player.Ap = utils.IfElse(player.Class == "Rogue", 8, 4)
+	player.Hp = utils.IfThenElse(player.Class == "Paladin", 120, 80)
+	player.Mp = utils.IfThenElse(player.Class == "Wizard", 40, 20)
+	player.Ap = utils.IfThenElse(player.Class == "Rogue", 8, 4)
 
 	rt.Write("Welcome %s the %s\r\n", player.Name, player.Class)
 	makeNext(rt)
@@ -95,27 +99,43 @@ func runGame(rt *termui.RawTerm) error {
 		rt.Write("Enemy %s is approaching...\r\n", enemyType.Name)
 
 		for {
-			rt.Write("[%s]\r\nHP: %d | MP: %d | Potions: %d\r\n", player.Name, player.Hp, player.Mp, player.Potions)
-			rt.Write("[%s]\r\nHP: %d | AP: %d\r\n", enemyType.Name, enemyCurrentHp, enemyType.Ap)
+			rt.Write(
+				"[%s]\r\nHP: %s | MP: %s | Potions: %s\r\n",
+				col(termui.CLR_YELLOW, player.Name),
+				col(termui.CLR_RED, strconv.Itoa(player.Hp)),
+				col(termui.CLR_BLUE, strconv.Itoa(player.Mp)),
+				col(termui.CLR_CYAN, strconv.Itoa(player.Potions)),
+			)
+			rt.Write(
+				"[%s]\r\nHP: %s | AP: %s\r\n",
+				col(termui.CLR_YELLOW, enemyType.Name),
+				col(termui.CLR_RED, strconv.Itoa(enemyCurrentHp)),
+				col(termui.CLR_BRED, strconv.Itoa(enemyType.Ap)),
+			)
+
 			makeNext(rt)
 
 			rt.Clear()
 			response, _, err = makeMenu(rt, "Your turn", player.Skills)
+			if err != nil {
+				return err
+			}
+
 			rt.Clear()
 
 			switch response {
 			case "Attack":
 				{
-					rt.Write("%s attacks %s for %d points\r\n", player.Name, enemyType.Name, player.Ap)
+					rt.Write("%s attacks %s for %d points\r\n", col(termui.CLR_YELLOW, player.Name), col(termui.CLR_RED, enemyType.Name), player.Ap)
 					enemyCurrentHp -= player.Ap
 					break
 				}
 			case "Magic":
 				{
 					if player.Mp <= 0 {
-						rt.Write("%s fails to cast spell\r\n", player.Name)
+						rt.Write("%s fails to cast spell\r\n", col(termui.CLR_YELLOW, player.Name))
 					} else {
-						rt.Write("%s casts the spell on %s for %d points\r\n", player.Name, enemyType.Name, spellDamage)
+						rt.Write("%s casts the spell on %s for %d points\r\n", col(termui.CLR_YELLOW, player.Name), col(termui.CLR_RED, enemyType.Name), spellDamage)
 						enemyCurrentHp -= spellDamage
 						player.Mp -= 5
 					}
@@ -124,9 +144,9 @@ func runGame(rt *termui.RawTerm) error {
 			case "Potion":
 				{
 					if player.Potions <= 0 {
-						rt.Write("%s has no potions left\r\n", player.Name)
+						rt.Write("%s has no potions left\r\n", col(termui.CLR_YELLOW, player.Name))
 					} else {
-						rt.Write("%s drinks potion and heals for %d points\r\n", player.Name, potionStrenght)
+						rt.Write("%s drinks potion and heals for %d points\r\n", col(termui.CLR_YELLOW, player.Name), potionStrenght)
 						player.Hp += potionStrenght
 						player.Potions--
 					}
@@ -134,13 +154,18 @@ func runGame(rt *termui.RawTerm) error {
 			}
 
 			if enemyCurrentHp <= 0 {
-				rt.Write("%s the %s defeated %s\r\n", player.Name, player.Class, enemyType.Name)
+				rt.Write(
+					"%s the %s defeated %s\r\n",
+					col(termui.CLR_YELLOW, player.Name),
+					col(termui.CLR_CYAN, player.Class),
+					col(termui.CLR_RED, enemyType.Name),
+				)
 				makeSeparator(rt)
 				makeNext(rt)
 				break
 			}
 
-			rt.Write("%s attacks %s for %d points\r\n", enemyType.Name, player.Name, enemyType.Ap)
+			rt.Write("%s attacks %s for %d points\r\n", col(termui.CLR_RED, enemyType.Name), col(termui.CLR_YELLOW, player.Name), enemyType.Ap)
 			player.Hp -= enemyType.Ap
 		}
 
@@ -166,6 +191,9 @@ func makeNext(rt *termui.RawTerm) error {
 		if err != nil {
 			return err
 		}
+		if ch == termui.KEY_CTRL_C {
+			return fmt.Errorf("Exit")
+		}
 		if ch == termui.KEY_CR {
 			break
 		}
@@ -175,8 +203,8 @@ func makeNext(rt *termui.RawTerm) error {
 
 func makeInput(rt *termui.RawTerm, question string) (string, error) {
 	rt.Clear()
-	rt.Write("[ %s ]\r\n", question)
-	rt.Write("\033[31m> \033[0m")
+	rt.Write("[ %s ]\r\n", col(termui.CLR_YELLOW, question))
+	rt.Write("%s", col(termui.CLR_RED, "> "))
 	return rt.ReadLine()
 }
 
@@ -184,7 +212,7 @@ func makeMenu(rt *termui.RawTerm, question string, options []string) (string, in
 	cursor := 0
 
 	rt.Clear()
-	rt.Write("[ %s ]\r\n", question)
+	rt.Write("[ %s ]\r\n", col(termui.CLR_YELLOW, question))
 	renderMenu(rt, cursor, options)
 
 	for {
@@ -193,8 +221,8 @@ func makeMenu(rt *termui.RawTerm, question string, options []string) (string, in
 			return "", -1, err
 		}
 		switch ch {
-		case termui.KEY_BS:
-			return "", -1, nil
+		case termui.KEY_CTRL_C:
+			return "", -1, fmt.Errorf("Exit")
 		case termui.KEY_CR:
 			return options[cursor], cursor, nil
 		case termui.KEY_UP:
@@ -204,14 +232,19 @@ func makeMenu(rt *termui.RawTerm, question string, options []string) (string, in
 		}
 		cursor %= len(options)
 		rt.Clear()
-		rt.Write("[ %s ]\r\n", question)
+		rt.Write("[ %s ]\r\n", col(termui.CLR_YELLOW, question))
 		renderMenu(rt, cursor, options)
 	}
 }
 
 func renderMenu(rt *termui.RawTerm, cursor int, options []string) {
 	for i, opt := range options {
-		char := utils.IfElse(i == cursor, ">", " ")
-		rt.Write("\033[31m%s\033[0m %s\r\n", char, opt)
+		char := utils.IfThenElse(i == cursor, ">", " ")
+		color := utils.IfThenElse(i == cursor, termui.CLR_YELLOW, termui.CLR_RESET)
+		rt.Write("%s %s\r\n", col(termui.CLR_RED, char), col(color, opt))
 	}
+}
+
+func col(color int, message string) string {
+	return fmt.Sprintf("\033[%dm%s\033[0m", color, message)
 }

@@ -64,9 +64,7 @@ func (rt *RawTerm) ReadLine() (string, error) {
 		if ch == KEY_CR {
 			fmt.Print("\r\n")
 			break
-		}
-
-		if ch == KEY_BS {
+		} else if ch == KEY_BS {
 			if len(out) > 0 {
 				out = out[:len(out)-1]
 				fmt.Print("\b \b")

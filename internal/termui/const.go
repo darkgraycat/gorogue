@@ -1,11 +1,57 @@
 package termui
 
 const (
+	KEY_CTRL_C = 3
+
 	KEY_CR = 13
 	KEY_BS = 127
 
-	KEY_UP      = 65
-	KEY_DOWN    = 66
-	KEY_RIGHT   = 67
-	KEY_LEFT    = 68
+	KEY_UP    = 65
+	KEY_DOWN  = 66
+	KEY_RIGHT = 67
+	KEY_LEFT  = 68
+)
+
+const (
+	CLR_RESET = 0
+
+	// basic
+	CLR_BLACK   = 30
+	CLR_RED     = 31
+	CLR_GREEN   = 32
+	CLR_YELLOW  = 33
+	CLR_BLUE    = 34
+	CLR_MAGENTA = 35
+	CLR_CYAN    = 36
+	CLR_WHITE   = 37
+
+	// bright
+	CLR_BBLACK   = 90
+	CLR_BRED     = 91
+	CLR_BGREEN   = 92
+	CLR_BYELLOW  = 93
+	CLR_BBLUE    = 94
+	CLR_BMAGENTA = 95
+	CLR_BCYAN    = 96
+	CLR_BWHITE   = 97
+
+	// background
+	CLR_BG_BLACK   = 40
+	CLR_BG_RED     = 41
+	CLR_BG_GREEN   = 42
+	CLR_BG_YELLOW  = 43
+	CLR_BG_BLUE    = 44
+	CLR_BG_MAGENTA = 45
+	CLR_BG_CYAN    = 46
+	CLR_BG_WHITE   = 47
+
+	// bright background
+	CLR_BG_BBLACK   = 100
+	CLR_BG_BRED     = 101
+	CLR_BG_BGREEN   = 102
+	CLR_BG_BYELLOW  = 103
+	CLR_BG_BBLUE    = 104
+	CLR_BG_BMAGENTA = 105
+	CLR_BG_BCYAN    = 106
+	CLR_BG_BWHITE   = 107
 )
